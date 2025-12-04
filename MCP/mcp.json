@@ -1,0 +1,59 @@
+{
+    "name": "builder-mcp-server",
+    "version": "1.0.0",
+    "description": "MCP server for Builder Agent: file read/write, list, metadata",
+    "tools": {
+        "read_file": {
+            "args": {
+                "path": "string"
+            },
+            "returns": "string",
+            "description": "Read a file from the workspace; returns empty string if not found."
+        },
+        "write_file": {
+            "args": {
+                "path": "string",
+                "content": "string"
+            },
+            "returns": "string",
+            "description": "Write content to a file in the workspace (atomic write)."
+        },
+        "list_files": {
+            "args": {
+                "path": "string?"
+            },
+            "returns": "array",
+            "description": "Recursively list files in workspace (relative paths)."
+        },
+        "get_current_directory": {
+            "args": {},
+            "returns": "string",
+            "description": "Return absolute workspace root path."
+        },
+        "read_metadata": {
+            "args": {},
+            "returns": "object",
+            "description": "Return metadata index (object)."
+        },
+        "create_metadata_file": {
+            "args": {
+                "initial_metadata": "object?"
+            },
+            "returns": "string",
+            "description": "Create metadata index (overwrites only if instructed)."
+        },
+        "update_metadata_for_file": {
+            "args": {
+                "path": "string",
+                "metadata": "object"
+            },
+            "returns": "string",
+            "description": "Update metadata entry for a single file."
+        },
+        "refresh_metadata_for_all_files": {
+            "args": {},
+            "returns": "string",
+            "description": "Regenerate metadata for all known files (slow)."
+        }
+    }
+}

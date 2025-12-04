@@ -7,7 +7,8 @@ from langgraph.prebuilt import create_react_agent
 
 from agent.prompts import *
 from agent.states import *
-from agent.tools import write_file, read_file, get_current_directory, list_files
+#from agent.tools import write_file, read_file, get_current_directory, list_files
+from fastmcp import MCPClient 
 
 import os
 
@@ -17,6 +18,11 @@ set_debug(True)
 set_verbose(True)
 
 llm = ChatGroq(model="openai/gpt-oss-120b")
+
+mcp_client=MCPClient("http://localhost:5001/mcp")
+
+coder_tools = mcp_client.get_tools()
+#react_agent = create_react_agent(llm, coder_tools)
 
 
 def planner_agent(state: dict) -> dict:
