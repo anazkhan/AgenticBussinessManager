@@ -5,3 +5,7 @@ fastapi
 uvicorn
 python-dotenv
 fastmcp
+langchain-community 
+langchain-core
+langchain-mcp-adapters
+langchain_google_genai

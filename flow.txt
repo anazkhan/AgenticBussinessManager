@@ -1,0 +1,107 @@
+1.Decider Node 
+
+ - Decides the Node Flow if the folder for corresponding project does not exist we enter Build phase else update phase 
+
+2. Build Phase  
+   - Planner → Architect → Coder → Create metadata.json  
+   - Metadata includes:
+       imports, exports, roles, ui_elements, semantic_blocks, dependency_graph
+   - Save to project folder and persistent memory.
+
+3. Update Phase  
+   - Decider checks if project exists  
+   - Interpretation Node:
+       a. parse user request → extract entities/actions  
+       b. load metadata.json  
+       c. score each file using:
+             - role match
+             - semantic_blocks
+             - UI element match
+             - file location
+             - dependency graph
+       d. choose candidate + dependency files+ fresh files
+       e. prepare modification_plan
+
+4. UpdateCode Node:
+       a. load files
+       b. AST parse candidate + dependencies
+       c. apply transformation
+       d. compute unified diff
+       e. patch via MCP write_file
+       
+5.verification Node:
+
+       
+
+4. RefreshMetadata Node:
+       - regenerate metadata for touched files
+       - update dependency graph if imports changed
+
+
+
+
+
+
+metadata = load_metadata()
+
+(2) Local filtering by backend code (NOT the LLM)
+
+You run heuristics:
+
+    match UI elements
+
+    match semantic blocks
+
+    check dependencies
+
+    check file types (page/component/utils)
+
+    check field names
+
+    check “roles”
+
+And only pick the candidate files:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+task_plan after architect agent--->
+{
+  "implementation_steps": [
+    {
+      "filepath": "index.html",
+      "task_description": "Create the basic HTML structure with a container for the todo list, an input field for new tasks, and an 'Add' button. Link the style.css and app.js files."
+    },
+    {
+      "filepath": "style.css",
+      "task_description": "Implement modern, colorful styling. Use a gradient background, card-style layout for the todo container, and style the input and button with hover effects. Add classes for completed tasks (e.g., strikethrough)."
+    },
+    {
+      "filepath": "app.js",
+      "task_description": "Write the JavaScript logic to handle adding new tasks, toggling their completion status, and deleting tasks. Ensure the UI updates dynamically when these actions occur."
+    }
+  ],
+  "plan": {
+    "name": "Colourful Todo App",
+    "description": "A modern, vibrant todo list application.",
+    "techstack": "html, css, javascript",
+    "features": ["Add tasks", "Mark as complete", "Delete tasks", "Responsive design"],
+    "files": [
+      { "path": "index.html", "purpose": "Main structure" },
+      { "path": "style.css", "purpose": "Styling" },
+      { "path": "app.js", "purpose": "Logic" }
+    ]
+  }
+}
+
+when we update the existing code base like when user prompts "change form button colour" we need to get context from task_plan+list_files to create modification_plan which contains new task_plan(which we will append) , candidate_files, dependency file, and fresh_files(incase we add more files) . and coder will code this ----> prompt it well to understand it works on an already existing code base.

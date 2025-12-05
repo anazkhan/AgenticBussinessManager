@@ -1,27 +1,34 @@
 from dotenv import load_dotenv
-from langchain.globals import set_verbose, set_debug
+#from langchain.globals import set_verbose, set_debug
 from langchain_groq.chat_models import ChatGroq
 from langgraph.constants import END
 from langgraph.graph import StateGraph
 from langgraph.prebuilt import create_react_agent
+from utils import make_langchain_tools_from_mcp
+from langchain_google_genai import ChatGoogleGenerativeAI
 
-from agent.prompts import *
-from agent.states import *
+from prompts import *
+from states import *
 #from agent.tools import write_file, read_file, get_current_directory, list_files
-from fastmcp import MCPClient 
+from fastmcp import Client 
 
 import os
 
 _ = load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env'))
 
-set_debug(True)
-set_verbose(True)
+# set_debug(True)
+# set_verbose(True)
 
-llm = ChatGroq(model="openai/gpt-oss-120b")
+#llm = ChatGroq(model="openai/gpt-oss-120b")
+#llm = ChatGroq(model="qwen/qwen3-32b")
+llm = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash",   # or "gemini-2.5-pro"
+    api_key=os.getenv("GOOGLE_API_KEY")
+)
 
-mcp_client=MCPClient("http://localhost:5001/mcp")
+mcp_client=Client("http://localhost:5001/mcp")
 
-coder_tools = mcp_client.get_tools()
+#coder_tools = mcp_client.get_tools()
 #react_agent = create_react_agent(llm, coder_tools)
 
 
@@ -48,21 +55,33 @@ def architect_agent(state: dict) -> dict:
     resp.plan = plan
     print(resp.model_dump_json())
     return {"task_plan": resp}
-
-
-def coder_agent(state: dict) -> dict:
+async def coder_agent(state: dict) -> dict:
     """LangGraph tool-using coder agent."""
     coder_state: CoderState = state.get("coder_state")
     if coder_state is None:
-        coder_state = CoderState(task_plan=state["task_plan"], current_step_idx=0)
-
+        coder_state = CoderState(
+            task_plan=state["task_plan"], 
+            current_step_idx=0
+        )
+    
     steps = coder_state.task_plan.implementation_steps
     if coder_state.current_step_idx >= len(steps):
         return {"coder_state": coder_state, "status": "DONE"}
-
+    
     current_task = steps[coder_state.current_step_idx]
-    existing_content = read_file.run(current_task.filepath)
-
+    
+    # Convert MCP tools to LangChain tools (FIXED)
+    lc_tools = await make_langchain_tools_from_mcp(mcp_client)
+    
+    # Read existing file content
+    read_tool = next((t for t in lc_tools if t.name == "read_file"), None)
+    existing_content = ""
+    if read_tool:
+        try:
+            existing_content = await read_tool.ainvoke({"path": current_task.filepath})
+        except Exception:
+            pass
+    
     system_prompt = coder_system_prompt()
     user_prompt = (
         f"Task: {current_task.task_description}\n"
@@ -70,28 +89,72 @@ def coder_agent(state: dict) -> dict:
         f"Existing content:\n{existing_content}\n"
         "Use write_file(path, content) to save your changes."
     )
-
-    coder_tools = [read_file, write_file, list_files, get_current_directory]
-    react_agent = create_react_agent(llm, coder_tools)
-
-    react_agent.invoke({"messages": [{"role": "system", "content": system_prompt},
-                                     {"role": "user", "content": user_prompt}]})
-
+    
+    # Create agent with LangChain tools
+    react_agent = create_react_agent(llm, lc_tools)
+    
+    # Invoke agent
+    response = await react_agent.ainvoke({
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ]
+    })
+    
     coder_state.current_step_idx += 1
-    return {"coder_state": coder_state}
+    return {"coder_state": coder_state, "response": response}
 
 
-def interpretation_node(state: dict) -> dict:
-    pass 
+# def coder_agent(state: dict) -> dict:
+#     """LangGraph tool-using coder agent."""
+#     coder_state: CoderState = state.get("coder_state")
+#     if coder_state is None:
+#         coder_state = CoderState(task_plan=state["task_plan"], current_step_idx=0)
 
-def updateCode_node(state: dict) -> dict:
-    pass 
+#     steps = coder_state.task_plan.implementation_steps
+#     if coder_state.current_step_idx >= len(steps):
+#         return {"coder_state": coder_state, "status": "DONE"}
 
-def refreshMetadata_node(state: dict) -> dict:
-    pass 
+#     current_task = steps[coder_state.current_step_idx]
+    
+#     # Use the global coder_tools to find the read_file tool
+#     read_tool = next((t for t in coder_tools if t.name == "read_file"), None)
+#     existing_content = ""
+#     if read_tool:
+#         try:
+#             existing_content = read_tool.invoke({"path": current_task.filepath})
+#         except Exception:
+#             pass
 
-def Verification_node(state: dict) -> dict:
-    pass 
+#     system_prompt = coder_system_prompt()
+#     user_prompt = (
+#         f"Task: {current_task.task_description}\n"
+#         f"File: {current_task.filepath}\n"
+#         f"Existing content:\n{existing_content}\n"
+#         "Use write_file(path, content) to save your changes."
+#     )
+
+#     # coder_tools is already defined globally
+#     react_agent = create_react_agent(llm, coder_tools)
+
+#     react_agent.invoke({"messages": [{"role": "system", "content": system_prompt},
+#                                      {"role": "user", "content": user_prompt}]})
+
+#     coder_state.current_step_idx += 1
+#     return {"coder_state": coder_state}
+
+
+# def interpretation_node(state: dict) -> dict:
+#     pass 
+
+# def updateCode_node(state: dict) -> dict:
+#     pass 
+
+# def refreshMetadata_node(state: dict) -> dict:
+#     pass 
+
+# def Verification_node(state: dict) -> dict:
+#     pass 
 
 
 graph = StateGraph(dict)
@@ -110,7 +173,13 @@ graph.add_conditional_edges(
 
 graph.set_entry_point("planner")
 agent = graph.compile()
+import asyncio
+
 if __name__ == "__main__":
-    result = agent.invoke({"user_prompt": "Build a colourful modern todo app in html css and js"},
-                          {"recursion_limit": 100})
-    print("Final State:", result)
+    async def main():
+        async with mcp_client:
+            result = await agent.ainvoke({"user_prompt": "Build a website for a local restaurant"},
+                                  {"recursion_limit": 100})
+            print("Final State:", result)
+    
+    asyncio.run(main())

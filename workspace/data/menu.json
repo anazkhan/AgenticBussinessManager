@@ -1,0 +1,34 @@
+[
+  {
+    "id": "item1",
+    "name": "Caprese Salad",
+    "description": "Fresh mozzarella, tomatoes, and basil, drizzled with balsamic glaze.",
+    "price": 12.00,
+    "category": "Appetizers",
+    "imageUrl": "/images/caprese_salad.jpg"
+  },
+  {
+    "id": "item2",
+    "name": "Spaghetti Carbonara",
+    "description": "Classic Roman pasta dish with eggs, hard cheese, cured pork, and black pepper.",
+    "price": 18.50,
+    "category": "Main Courses",
+    "imageUrl": "/images/spaghetti_carbonara.jpg"
+  },
+  {
+    "id": "item3",
+    "name": "Tiramisu",
+    "description": "Coffee-soaked ladyfingers layered with mascarpone cheese and cocoa.",
+    "price": 9.00,
+    "category": "Desserts",
+    "imageUrl": "/images/tiramisu.jpg"
+  },
+  {
+    "id": "item4",
+    "name": "Coca-Cola",
+    "description": "Classic carbonated soft drink.",
+    "price": 3.00,
+    "category": "Drinks",
+    "imageUrl": "/images/coca_cola.jpg"
+  }
+]

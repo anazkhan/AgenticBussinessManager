@@ -13,30 +13,66 @@ def _safe_write_json(path: str, obj):
 
 def _extract_basic_metadata(path: str, content: str):
     """
-    Lightweight metadata extraction. This is intentionally small and fast.
-    Later we will expand to AST-derived semantic_blocks.
+    Lightweight metadata extraction with a human-readable description.
     """
-    # imports (rough, handles common JS/TS/ESM syntax)
-    imports = re.findall(r'(?:from\s+["\']([^"\']+)["\']|import\s+["\']([^"\']+)["\'])', content)
-    # flatten tuples and keep only local file imports
-    imports_flat = []
-    for a, b in imports:
-        imp = a or b
-        if imp and (imp.startswith(".") or imp.endswith(".css")):
-            imports_flat.append(imp)
 
-    exports = re.findall(r'export\s+(?:default\s+)?(?:const|function|class|let|var)?\s*([A-Za-z0-9_]+)?', content)
+    # --- imports ---
+    imports = re.findall(r'(?:from\s+["\']([^"\']+)["\']|import\s+["\']([^"\']+)["\'])', content)
+    imports_flat = [a or b for a, b in imports if (a or b) and ((a or b).startswith(".") or (a or b).endswith(".css"))]
+
+    # --- exports ---
+    exports = re.findall(
+        r'export\s+(?:default\s+)?(?:const|function|class|let|var)?\s*([A-Za-z0-9_]+)?', content
+    )
     exports = [e for e in exports if e]
 
-    # very small heuristic for ui elements
-    ui_keywords = ["<button", "<input", "<form", "<label", "className=", "style="]
+    # --- UI elements ---
+    ui_keywords = ["<button", "<input", "<form", "<label", "<textarea", "<select", "className=", "style="]
     ui_elements = [k.strip("<") for k in ui_keywords if k in content]
 
+    # --- description (plain English) ---
+    description_parts = []
+
+    # Describe component
+    if exports:
+        description_parts.append(f"Exports component(s): {', '.join(exports)}")
+
+    # Describe UI elements
+    if ui_elements:
+        description_parts.append(f"Contains UI elements: {', '.join(ui_elements)}")
+
+    # Describe imports
+    if imports_flat:
+        description_parts.append(f"Imports from: {', '.join(imports_flat)}")
+
+    # Check for forms
+    if "<form" in content:
+        form_fields = re.findall(r'<input[^>]*name=["\']([^"\']+)["\']', content)
+        if form_fields:
+            description_parts.append(f"Form with fields: {', '.join(form_fields)}")
+        if re.search(r'<button[^>]*type=["\']submit["\']', content):
+            description_parts.append("Includes submit button")
+
+    # Check for API calls
+    if "fetch(" in content or "axios." in content:
+        api_calls = re.findall(r'fetch\(["\']([^"\']+)', content)
+        api_calls += re.findall(r'axios\.\w+\(["\']([^"\']+)', content)
+        if api_calls:
+            description_parts.append(f"Calls API endpoints: {', '.join(api_calls)}")
+
+    # Check for state
+    if "useState(" in content or "useReducer(" in content:
+        description_parts.append("Uses React state management")
+
+    description = ". ".join(description_parts) if description_parts else "No notable components or UI elements detected."
+
+    # Return metadata
     return {
         "file": path,
         "imports": imports_flat,
         "exports": exports,
-        "ui_elements": ui_elements
+        "ui_elements": ui_elements,
+        "description": description
     }
 
 # --- API tools ---
