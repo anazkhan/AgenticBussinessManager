@@ -105,3 +105,9 @@ task_plan after architect agent--->
 }
 
 when we update the existing code base like when user prompts "change form button colour" we need to get context from task_plan+list_files to create modification_plan which contains new task_plan(which we will append) , candidate_files, dependency file, and fresh_files(incase we add more files) . and coder will code this ----> prompt it well to understand it works on an already existing code base.
+
+
+ when user gives prompt to  update like" change form button color to yellow" what we will do is first we will extract action from prompt and then filter task_plan,json to get matching implementation steps only + list_files + extracted action will be used to create implementation steps for the users need which again contains  {
+      "filepath": "app.py",
+      "task_description": "Import models from models.py and add the database initialization logic to the app."
+    } which will be appended and used by coder agent.
