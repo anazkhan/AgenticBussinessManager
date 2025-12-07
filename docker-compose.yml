@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  mcp:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.MCP
+    container_name: agentic-mcp
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./workspace:/app/workspace
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    networks:
+      - agentic-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import requests; requests.get('http://localhost:5001')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  backend:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.Backend
+    container_name: agentic-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./workspace:/app/workspace
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - MCP_URL=http://mcp:5001/mcp
+    depends_on:
+      - mcp
+    networks:
+      - agentic-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import requests; requests.get('http://localhost:8000')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  builderagent:
+    build:
+      context: .
+      dockerfile: Docker/Dockerfile.BuilderAgent
+    container_name: agentic-builderagent
+    ports:
+      - "8001:8001"
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - MCP_URL=http://mcp:5001/mcp
+    depends_on:
+      - mcp
+    networks:
+      - agentic-network
+
+networks:
+  agentic-network:
+    driver: bridge
+
+volumes:
+  workspace:

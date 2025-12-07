@@ -3,9 +3,11 @@ langchain_groq
 langgraph
 fastapi
 uvicorn
+pydantic
 python-dotenv
 fastmcp
 langchain-community 
 langchain-core
 langchain-mcp-adapters
 langchain_google_genai
+httpx

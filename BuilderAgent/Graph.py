@@ -175,11 +175,11 @@ graph.set_entry_point("planner")
 agent = graph.compile()
 import asyncio
 
-if __name__ == "__main__":
-    async def main():
-        async with mcp_client:
-            result = await agent.ainvoke({"user_prompt": "Build a website for a local restaurant"},
-                                  {"recursion_limit": 100})
-            print("Final State:", result)
+#if __name__ == "__main__":
+    # async def main():
+    #     async with mcp_client:
+    #         result = await agent.ainvoke({"user_prompt": "Build a website for a local restaurant"},
+    #                               {"recursion_limit": 100})
+    #         print("Final State:", result)
     
-    asyncio.run(main())
+    # asyncio.run(main())

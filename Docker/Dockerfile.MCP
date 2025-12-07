@@ -1,4 +1,4 @@
-# Dockerfile for Backend Service
+# Dockerfile for MCP Service
 FROM python:3.10-slim
 
 # Set working directory
@@ -11,11 +11,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the entire project to maintain import paths
 COPY . .
 
-# Expose Backend API port
-EXPOSE 8000
+# Expose MCP service port
+EXPOSE 5001
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 
-# Run the Backend FastAPI application
-CMD ["python3", "Backend/main.py"]
+# Run the MCP server
+CMD ["python3", "-m", "MCP.server"]
