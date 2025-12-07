@@ -4,10 +4,10 @@
 # BACKEND_PATH = os.path.join(PROJECT_ROOT, "Backend")
 # BUILDER_PATH = os.path.join(PROJECT_ROOT, "BuilderAgent")
 
-# Add both to Python path
-sys.path.insert(0, PROJECT_ROOT)
-sys.path.insert(0, BACKEND_PATH)
-sys.path.insert(0, BUILDER_PATH)
+# # Add both to Python path
+# sys.path.insert(0, PROJECT_ROOT)
+# sys.path.insert(0, BACKEND_PATH)
+# sys.path.insert(0, BUILDER_PATH)
 
 
 from fastapi import FastAPI
