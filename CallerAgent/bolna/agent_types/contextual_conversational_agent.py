@@ -15,7 +15,13 @@ class StreamingContextualAgent(BaseAgent):
     def __init__(self, llm):
         super().__init__()
         self.llm = llm
-        self.conversation_completion_llm = OpenAiLLM(model=os.getenv('CHECK_FOR_COMPLETION_LLM', llm.model))
+        #self.conversation_completion_llm = OpenAiLLM(model=os.getenv('CHECK_FOR_COMPLETION_LLM', llm.model))
+        self.conversation_completion_llm = OpenAiLLM(
+            model=os.getenv('CHECK_FOR_COMPLETION_LLM', llm.model),
+            provider="custom",
+            base_url="https://api.groq.com/openai/v1",
+            llm_key=os.getenv('GROQ_API_KEY')
+        )
         self.history = [{'content': ""}]
 
     async def check_for_completion(self, messages, check_for_completion_prompt):

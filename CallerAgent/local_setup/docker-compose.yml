@@ -8,14 +8,19 @@ services:
       context: .
       dockerfile: dockerfiles/bolna_server.Dockerfile
     image: bolna-app:latest  # This will tag the built image
+    command: uvicorn local_setup.quickstart_server:app --host 0.0.0.0 --port 5001
     ports:
       - "5001:5001"
     depends_on:
       - redis
+    environment:
+      - BOLNA_HOST=0.0.0.0
+      - BOLNA_PORT=5001
+      - PYTHONPATH=/app
     env_file:
       - .env
     volumes:
-      - ../agent_data:/app/agent_data
+      - ../:/app
       - $HOME/.aws/credentials:/root/.aws/credentials:ro
       - $HOME/.aws/config:/root/.aws/config:ro
 

@@ -41,6 +41,11 @@ class TelephonyOutputHandler(DefaultOutputHandler):
                 self.stream_sid = meta_info.get('stream_sid', None)
 
             try:
+
+                if audio_chunk is None:  # <--- Add this check
+                    logger.info("Received None audio_chunk, skipping")
+                    return
+                    
                 if len(audio_chunk) == 1:
                     audio_chunk += b'\x00'
 
