@@ -1,0 +1,8 @@
+version: "2"
+authtoken: 36umG4tdF8EPQ1TKOPmhfZTO2KE_4qBFS7222sAPhnmKCpgbo
+region: us
+
+tunnels:
+  bolna-app:
+    proto: http
+    addr: bolna-app:5001

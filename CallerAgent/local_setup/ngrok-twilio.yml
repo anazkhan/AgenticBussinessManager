@@ -1,0 +1,8 @@
+version: "2"
+authtoken: 36q3yNg84PxA5fznOuew9DWSuXD_5vWbSFe79f8uGFtzdHNX4
+region: us
+
+tunnels:
+  twilio-app:
+    proto: http
+    addr: twilio-app:8001

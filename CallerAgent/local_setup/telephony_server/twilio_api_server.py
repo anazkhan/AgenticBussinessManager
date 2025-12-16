@@ -22,21 +22,35 @@ twilio_client = Client(twilio_account_sid, twilio_auth_token)
 
 
 def populate_ngrok_tunnels():
-    response = requests.get("http://ngrok:4040/api/tunnels")  # ngrok interface
     telephony_url, bolna_url = None, None
+    try:
+        # Fetch telephony URL from ngrok-twilio
+        response_twilio = requests.get("http://ngrok-twilio:4040/api/tunnels")
+        if response_twilio.status_code == 200:
+            data = response_twilio.json()
+            for tunnel in data['tunnels']:
+                if tunnel['name'] == 'twilio-app':
+                    telephony_url = tunnel['public_url']
+                    break
+        else:
+             print(f"Error fetching Twilio tunnel: {response_twilio.status_code}")
 
-    if response.status_code == 200:
-        data = response.json()
-
-        for tunnel in data['tunnels']:
-            if tunnel['name'] == 'twilio-app':
-                telephony_url = tunnel['public_url']
-            elif tunnel['name'] == 'bolna-app':
-                bolna_url = tunnel['public_url'].replace('https:', 'wss:')
+        # Fetch Bolna URL from ngrok-bolna
+        response_bolna = requests.get("http://ngrok-bolna:4040/api/tunnels")
+        if response_bolna.status_code == 200:
+            data = response_bolna.json()
+            for tunnel in data['tunnels']:
+                if tunnel['name'] == 'bolna-app':
+                    bolna_url = tunnel['public_url'].replace('https:', 'wss:')
+                    break
+        else:
+            print(f"Error fetching Bolna tunnel: {response_bolna.status_code}")
 
         return telephony_url, bolna_url
-    else:
-        print(f"Error: Unable to fetch data. Status code: {response.status_code}")
+
+    except Exception as e:
+        print(f"Error in populate_ngrok_tunnels: {e}")
+        return None, None
 
 
 @app.post('/call')
