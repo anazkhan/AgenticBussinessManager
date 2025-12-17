@@ -1,0 +1,67 @@
+{
+    "agent_name": "caller_agent",
+    "agent_type": "other",
+    "tasks": [
+        {
+            "task_type": "conversation",
+            "toolchain": {
+                "execution": "parallel",
+                "pipelines": [
+                    [
+                        "transcriber",
+                        "llm",
+                        "synthesizer"
+                    ]
+                ]
+            },
+            "tools_config": {
+                "input": {
+                    "format": "wav",
+                    "provider": "twilio"
+                },
+                "output": {
+                    "format": "wav",
+                    "provider": "twilio"
+                },
+                "transcriber": {
+                    "encoding": "linear16",
+                    "language": "en",
+                    "provider": "deepgram",
+                    "stream": true,
+                    "endpointing": 400,
+                    "model": "nova-2"
+                },
+                "llm_agent": {
+                    "agent_type": "simple_llm_agent",
+                    "agent_flow_type": "streaming",
+                    "llm_config": {
+                        "provider": "groq",
+                        "model": "llama3-70b-8192",
+                        "request_json": true,
+                        "max_tokens": 100
+                    }
+                },
+                "synthesizer": {
+                    "audio_format": "wav",
+                    "provider": "elevenlabs",
+                    "stream": true,
+                    "provider_config": {
+                        "voice": "George",
+                        "model": "eleven_turbo_v2_5",
+                        "voice_id": "JBFqnCBsd6RMkjVDRZzb"
+                    },
+                    "buffer_size": 100.0
+                }
+            },
+            "task_config": {
+                "hangup_after_silence": 30.0
+            }
+        }
+    ],
+    "agent_welcome_message": "hey, This is Alex from Cosurfer. Do you have a moment to chat?",
+    "prompts": {
+        "task_1": {
+            "system_prompt": "You are Alex, a friendly and professional sales representative for Cosurfer, a dynamic startup. Your goal is to engage potential clients, explain the value of Cosurfer's offerings, and schedule a follow-up meeting. Be polite, concise, and helpful. If the user is busy, offer to call back later. Always maintain a positive tone."
+        }
+    }
+}
